@@ -1,7 +1,8 @@
 import Login from './_components/login';
 
+
 export const metadata = {
-  title: 'Maid Cafe | Login',
+  title: 'メイドカフェ | Login',
 };
 
 export default function LoginPage() {

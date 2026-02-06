@@ -1,6 +1,6 @@
 
 import { DarkmodeToggle } from "@/components/common/darkmode-toggle";
-import { Coffee } from "lucide-react";
+import { Heart } from "lucide-react";
 import { ReactNode } from "react";
 
 type AuthLayoutProps = {
@@ -17,9 +17,9 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex items-center gap-2 self-center font-medium">
           <div className="bg-pink-500 flex items-center justify-center p-2 rounded-md">
-            <Coffee />
+            <Heart />
           </div>
-          | Maid Cafe
+          | メイドカフェ
         </div>
       </div>
 
