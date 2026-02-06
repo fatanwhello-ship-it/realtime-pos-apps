@@ -6,6 +6,20 @@ type CreateClientOptions = {
   isAdmin?: boolean;
 };
 
+interface Cookie {
+  name: string;
+  value: string;
+  options: {
+    domain?: string;
+    expires?: Date;
+    httpOnly?: boolean;
+    maxAge?: number;
+    path?: string;
+    sameSite?: 'strict' | 'lax' | 'none';
+    secure?: boolean;
+  };
+}
+
 export async function createClient({ isAdmin = false }: CreateClientOptions = {}) {
   const cookieStore = await cookies();
   const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } =
@@ -19,7 +33,7 @@ export async function createClient({ isAdmin = false }: CreateClientOptions = {}
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: Cookie[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),

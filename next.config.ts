@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '10mb',
     },
   },
-  
+  reactStrictMode: true,  
   images: {
     domains: [
       'zhocnofpayqskvusijut.supabase.co',
