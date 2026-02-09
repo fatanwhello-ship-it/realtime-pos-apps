@@ -1,9 +1,12 @@
 'use client';
 
 import LineCharts from "@/components/common/line-charts";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { convertJPY } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 export default function Dashboard() {
     const supabase = createClient();
@@ -15,8 +18,6 @@ export default function Dashboard() {
 
     const {
         data: orders,
-        isLoading,
-        refetch: refetchOrders,
     } = useQuery({
         queryKey: ['orders-per-day'],
         queryFn: async () => {
@@ -38,26 +39,210 @@ export default function Dashboard() {
         }, 
     });
 
+    const thisMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1,
+    ).toISOString();
+
+
+    const lastMonth = new Date(new Date().getFullYear(),0, 1).toISOString();
+
+    const {data: revenue} = useQuery({
+        queryKey: ['revenue-this-month'],
+        queryFn: async () => {
+            const {data: dataThisMonth} = await supabase
+            .from('orders_menus')
+            .select('quantity, menus(price), created_at')
+            .gte('created_at', thisMonth);
+
+
+    const {data: dataLastMonth} = await supabase
+        .from('orders_menus')
+        .select('quantity, menus(price), created_at')
+        .gte('created_at', lastMonth)
+        .lt('created_at', thisMonth);
+
+
+    const totalRevenueThisMonth = (dataThisMonth ?? []).reduce(
+        (sum, item) => {
+            const price = (item.menus as unknown as {price: number}).price;
+            return sum + price * item.quantity;
+        },
+        0,       
+    );
+
+
+    const totalRevenueLastMonth = (dataLastMonth ?? []).reduce(
+        (sum, item) => {
+            const price = (item.menus as unknown as { price: number }).price;
+            return sum + price * item.quantity;
+        },
+        0,
+    );
+
+
+    const growthRate = (
+        ((totalRevenueThisMonth - totalRevenueLastMonth) /
+          totalRevenueLastMonth) * 100
+    ).toFixed(2);
+
+
+    const daysInData = new Set(
+        (dataThisMonth ?? []).map((item) =>
+        new Date(item.created_at).toISOString().slice(0, 10),
+        ),
+    ).size;
+
+
+    const averageRevenueThisMonth = 
+        daysInData > 0 ? totalRevenueThisMonth / daysInData : 0;
+
+
+    return {
+        totalRevenueThisMonth,
+        totalRevenueLastMonth,
+        averageRevenueThisMonth,
+        growthRate,
+        };
+    },
+});
+
+    const {data: totalOrder} = useQuery({
+        queryKey: ['total-order'],
+        queryFn: async () => {
+            const {count} = await supabase
+            .from('orders')
+            .select('id', {count: 'exact'})
+            .eq('status', 'settled')
+            .gte('created_at', thisMonth);
+
+
+            return count;
+        },
+    });
+
+
+    const {data: lastOrder} = useQuery({
+        queryKey: ['last-Order'],
+        queryFn: async () => {
+            const {data} = await supabase
+            .from('orders')
+            .select('id, order_id, customer_name, status, tables(name, id)')
+            .eq('status', 'process')
+            .limit(5)
+            .order('created_at', {ascending: false});
+
+
+            return data;
+        },
+    });
+
 
     return (
         <div className="w-full">
             <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
                 <h1 className="text-2xl font-bold"> ダッシュボード | Dashboard </h1>
             </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>週ごとの注文作成</CardTitle>
-                    <CardDescription>
-                        からの注文を表示しています {lastWeek.toLocaleDateString()} に {''}
-                        {new Date().toLocaleDateString()}
-                    </CardDescription>
-                </CardHeader> 
-                <div className="w-full h-64 p-6">
-                    <LineCharts data={orders} />
-                </div>
-            </Card>
-        </div>
-        
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <Card>
+                    <CardHeader>
+                        <CardDescription>総収益 | Total Revenue</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {convertJPY(revenue?.totalRevenueThisMonth ?? 0)}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">
+                            今月の収益 | Revenue this month
+                        </div>
+                    </CardFooter>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardDescription>平均収益 | Average Revenue</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {convertJPY(revenue?.averageRevenueThisMonth ?? 0)}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">
+                            1日あたりの平均 | Average per day
+                        </div>
+                    </CardFooter>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardDescription>合計注文数 | Total Order</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {totalOrder ?? 0}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">
+                            今月注文が完了しました | Order settled this month
+                        </div>
+                    </CardFooter>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardDescription>成長率 | Growth Rate</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {revenue?.growthRate ?? 0}%
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">
+                            先月と比較して | Compared to last month
+                        </div>
+                    </CardFooter>
+                </Card>
+            </div>
+            <div className="flex flex-col lg:flex-row gap-4">
+                <Card className="w-full lg:w-2/3">
+                    <CardHeader>
+                        <CardTitle>1日あたりの注文作成 | Order Create Per Day</CardTitle>
+                        <CardDescription>
+                            からの注文を表示しています {lastWeek.toLocaleDateString()} に{' '}
+                            {new Date().toLocaleDateString()}
+                        </CardDescription>
+                    </CardHeader>
+                    <div className="w-full h-64 p-6">
+                        <LineCharts data={orders} />
+                    </div>
+                </Card>
+                <Card className="w-full lg:w-1/3">
+                    <CardHeader>
+                        <CardTitle>アクティブな注文 | Active Order</CardTitle>
+                        <CardDescription>過去5件のアクティブな注文を表示しています</CardDescription>
+                    </CardHeader>
+                    <div className="px-6">
+                        {lastOrder ? (
+                            lastOrder.map((order) => (
+                                <div key={order.id} className="flex items-center gap-4 justify-between mb-4">
+                                    <div>
+                                        <h3 className="font-semibold">{order.customer_name}</h3>
+                                        <p className="text-sm textp-muted-foreground">
+                                            Table:{' '}
+                                            {(order.tables as unknown as {name: string}).name}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Order ID: {order.id}
+                                        </p>
+                                    </div>
+                                    <Link href={`/order/${order.order_id}`}>
+                                        <Button className="mt-2" size="sm">
+                                            Detail
+                                        </Button>
+                                    </Link>
+                                </div>
+                            ))
+                        ) : ( 
+                            <p>No active Orders</p>
+                        )}
+                    </div>
+                </Card>
+            </div>
+        </div>       
     );
 }

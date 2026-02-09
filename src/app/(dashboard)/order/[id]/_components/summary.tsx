@@ -112,7 +112,7 @@ export default function Summary({
           </div>
 
           {order?.status === 'process' && roleKey !== 'kitchen' &&  (
-            <Button type="submit" onClick={handleGeneratePayment} disabled={!isAllServed || isPendingGeneratePayment} className="w-full font-semibold bg-pink-500 hover:bg-pink-600 textp-white cursor-pointer" >
+            <Button type="submit" onClick={handleGeneratePayment} disabled={!isAllServed || isPendingGeneratePayment || orderMenu?.length === 0} className="w-full font-semibold bg-pink-500 hover:bg-pink-600 textp-white cursor-pointer" >
               {isPendingGeneratePayment ? (
                 <Loader2 className="animate-spin" />
               ) : (

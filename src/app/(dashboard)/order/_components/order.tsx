@@ -22,7 +22,7 @@ import { Table } from '@/validations/table-validation';
 import {
   HEADER_TABLE_ORDER,
 } from '@/constants/order-constant';
-import DialogCreateOrder from './dialog-create-order';
+import DialogCreateOrder from './dialog-create-order-dine-in';
 import { updateReservation } from '../action';
 import { BASE_INITIAL_RESERVATION_STATE, INITIAL_STATE_ACTION } from '@/constants/general-constant';
 import Link from 'next/link';

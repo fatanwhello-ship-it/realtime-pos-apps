@@ -1,5 +1,5 @@
 import { GeneratePaymentState } from "@/types/general";
-import { INITIAL_STATE_ACTION } from "./general-constant";
+
 
 export const HEADER_TABLE_ORDER = [
     'No',
@@ -24,6 +24,10 @@ export const INITIAL_STATE_ORDER = {
     status: [],
     _form: [],
   },
+};
+
+export const INITIAL_ORDER_TAKEAWAY = {
+  customer_name: '',
 };
 
 export const STATUS_CREATE_ORDER = [

@@ -18,7 +18,7 @@ export default function Success() {
 
     const {mutate} = useMutation({
         mutationKey: [ 'mutateUpdateStatusOrder'],
-        mutationFn: async () => {
+        mutationFn: async () => {          
         const {data} = await supabase
             .from('orders')
             .update({
@@ -29,7 +29,7 @@ export default function Success() {
             .single();
 
 
-            if(data) {
+            if(data && data.table_id ) {
                 await supabase
                 .from('tables')
                 .update({
