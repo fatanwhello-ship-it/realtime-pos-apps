@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import useDataTable from '@/hooks/use-datatable';
 import { createClientSupabase } from '@/lib/supabase/default';
 import { useQuery } from '@tanstack/react-query';
-import { Ban, Link2Icon, ScrollText, } from 'lucide-react';
+import { Ban, Link2Icon, Package, ScrollText, Utensils, } from 'lucide-react';
 import {
   startTransition,
   useActionState,
@@ -28,6 +28,8 @@ import { BASE_INITIAL_RESERVATION_STATE, INITIAL_STATE_ACTION } from '@/constant
 import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth-store';
 import { SidebarMenuKey } from '@/constants/sidebar-constant';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import DialogCreateOrderTakeaway from './dialog-create-order-takeaway';
 
 export default function OrderManagement() {
   const supabase = createClientSupabase();
@@ -238,6 +240,8 @@ export default function OrderManagement() {
     });
   }, [orders]);
 
+  const [openCreateOrder, setOpenCreateOrder] = useState(false);
+
   return (
     <div className="w-full">
       <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
@@ -248,12 +252,29 @@ export default function OrderManagement() {
             onChange={(e) => handleChangeSearch(e.target.value)}
           />
           {roleKey !== 'kitchen' && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline">Create</Button>
-              </DialogTrigger>
-              <DialogCreateOrder tables={tables}/>
-          </Dialog>
+            <DropdownMenu open={openCreateOrder} onOpenChange={setOpenCreateOrder}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">作成する</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel className="font-bold">Create Order</DropdownMenuLabel>                
+                <DropdownMenuSeparator />
+                <Dialog>
+                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted">
+                    <Utensils className="size4" />
+                    Dine In
+                  </DialogTrigger>
+                  <DialogCreateOrder tables={tables} closeDialog={() => setOpenCreateOrder(false)} />
+                </Dialog>
+                <Dialog>
+                  <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted">
+                    <Package className="size-4" />
+                    Takeaway
+                  </DialogTrigger>
+                  <DialogCreateOrderTakeaway closeDialog={() => setOpenCreateOrder(false)} />
+                </Dialog> 
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

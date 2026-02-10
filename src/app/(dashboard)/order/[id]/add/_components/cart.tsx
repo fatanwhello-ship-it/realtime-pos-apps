@@ -21,10 +21,10 @@ export default function CartSection({
     }
         | undefined
         | null;
-        carts: Cart[];
+    carts: Cart[];
         setCarts: Dispatch<SetStateAction<Cart[]>>;
         onAddToCart: (item: Menu, type: 'decrement' | 'increment') => void; 
-        isLoading: boolean;
+    isLoading: boolean;
         onOrder: () => void;
 }) {
     const debounce = useDebounce();
@@ -61,7 +61,7 @@ export default function CartSection({
                 <div className="space-y-4">
                     <p className="text-lg font-semibold"> カート | Cart</p>
                     {carts.length > 0 ? (
-                        carts.map((item: Cart) => (
+                        carts?.map((item: Cart) => (
                             <div key={item.menu_id} className="space-y-2">
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-2">

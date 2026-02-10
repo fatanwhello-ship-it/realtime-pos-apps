@@ -15,9 +15,10 @@ import { Loader2 } from "lucide-react";
 import { createOrder } from "../action";
 
 
-export default function DialogCreateOrder({ tables, }: {
+export default function DialogCreateOrder({ tables, closeDialog }: {
 
     tables: Table[] | undefined | null;
+    closeDialog: () => void;
 }) {
 
     const form = useForm<OrderForm>({
@@ -52,7 +53,7 @@ export default function DialogCreateOrder({ tables, }: {
         if( createOrderState?.status === 'success' ) {
             toast.success('注文の作成が成功しました');
             form.reset();
-            document.querySelector<HTMLButtonElement>('[data-state="open"]')?.click();
+            closeDialog();
         }
     }, [createOrderState]);
 

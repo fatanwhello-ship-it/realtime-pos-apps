@@ -72,7 +72,7 @@ export default function Summary({
     }, [generatePaymentState]);
 
     return (
-       <Card className="w-full shadow-sm">
+    <Card className="w-full shadow-sm">
       <CardContent className="space-y-4">
         <h3 className="text-lg font-semibold">顧客情報</h3>
         {order && (
@@ -84,7 +84,7 @@ export default function Summary({
             <div className="space-y-2">
               <Label>Table</Label>
               <Input
-                value={(order?.tables as unknown as { name: string })?.name}
+                value={(order?.tables as unknown as { name: string })?.name || 'Takeaway'}
                 disabled
               />
             </div>

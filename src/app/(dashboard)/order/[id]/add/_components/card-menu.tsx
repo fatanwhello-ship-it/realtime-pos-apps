@@ -10,11 +10,12 @@ export default function CardMenu({ menu, onAddToCart }: { menu: Menu, onAddToCar
  }) {
     return (
         <Card  key={menu.id} className="w-full h-fit birder shadow-sm p-0 gap-0">
-            <Image src={`${menu.image_url}`} alt={menu.name} width={400} height={400} className="w-full object-cover rounded-t-lg" />
-
-            <CardContent className="px-4 py-2">
-                <h3 className="text-lg font-semibold">{menu.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp">{menu.description}</p>
+            <CardContent className="p-0">
+                <Image src={`${menu.image_url}`} alt={menu.name} width={400} height={400} className="w-full object-cover rounded-t-lg" />
+                <div className="px-4 py-2">
+                    <h3 className="text-lg font-semibold">{menu.name}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp">{menu.description}</p>
+                </div>
             </CardContent>
 
             <CardFooter className="p-4 flex justify-between items-center">
