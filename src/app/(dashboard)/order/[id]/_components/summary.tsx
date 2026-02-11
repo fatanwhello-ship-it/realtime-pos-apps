@@ -27,7 +27,7 @@ export default function Summary({
     };
 
     orderMenu: 
-        | { menus: Menu; quantity: number; status: string }[]
+        | { menus: Menu; quantity: number; status: string; nominal: number}[]
         | null
         | undefined;
 

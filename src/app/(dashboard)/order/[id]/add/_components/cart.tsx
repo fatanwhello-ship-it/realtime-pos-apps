@@ -69,10 +69,10 @@ export default function CartSection({
 
                                         <div>
                                             <p className="text-sm">{item.menu.name}</p>
-                                            <p className="text-xs text-muted-foreground">{convertJPY(item.total / item.quantity)}</p>
+                                            <p className="text-xs text-muted-foreground">{convertJPY(item.nominal / item.quantity)}</p>
                                         </div>
                                     </div> 
-                                    <p className="text-sm">{convertJPY(item.total)}</p>
+                                    <p className="text-sm">{convertJPY(item.nominal)}</p>
                                 </div>
                                 <div className="flex items-center gap-4 w-full">
 

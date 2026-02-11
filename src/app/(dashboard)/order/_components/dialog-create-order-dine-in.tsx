@@ -13,12 +13,19 @@ import FormSelect from "@/components/common/form-select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { createOrder } from "../action";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 
-export default function DialogCreateOrder({ tables, closeDialog }: {
+export default function DialogCreateOrder({ tables, closeDialog, selectedTable, }: {
 
-    tables: Table[] | undefined | null;
+    tables?: Table[] | undefined | null;
     closeDialog: () => void;
+    selectedTable?: {
+        id: string;
+        name: string;
+    };
+    
 }) {
 
     const form = useForm<OrderForm>({
@@ -41,6 +48,12 @@ export default function DialogCreateOrder({ tables, closeDialog }: {
             createOrderAction(formData);
         });
     });
+
+    useEffect(() => {
+        if(selectedTable) {
+            form.setValue('table_id', `${selectedTable.id}`);
+            }
+        } ,[selectedTable]);
 
 
     useEffect(() => {
@@ -70,12 +83,21 @@ export default function DialogCreateOrder({ tables, closeDialog }: {
 
                     <FormInput form={form} name="customer_name" label="顧客名" placeholder="ここに顧客名を入力してください" />
 
-                    <FormSelect form={form} name="table_id" label="テーブル" selectItem={(tables ?? []).map((table: Table) => ({
-                        value: `${table.id}`,
-                        label: `${table.name} - ${table.status} (${table.capacity})`,
-                        disabled: table.status !== 'available',
-                    }))} 
-                />
+                    {selectedTable ? (
+                        <div className="space-y-2">
+                            <Label>テーブル</Label>
+                            <Input name="table_id" value={selectedTable.name} disabled />
+                        </div>
+
+                    ) : (
+
+                        <FormSelect form={form} name="table_id" label="テーブル" selectItem={(tables ?? []).map((table: Table) => ({
+                            value: `${table.id}`,
+                            label: `${table.name} - ${table.status} (${table.capacity})`,
+                            disabled: table.status !== 'available',
+                        }))} 
+                      />
+                    )}
 
                     <FormSelect form={form} name="status" label="状態" selectItem={STATUS_CREATE_ORDER} />
 

@@ -30,6 +30,8 @@ import { useAuthStore } from '@/stores/auth-store';
 import { SidebarMenuKey } from '@/constants/sidebar-constant';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import DialogCreateOrderTakeaway from './dialog-create-order-takeaway';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TableMap from './table-map';
 
 export default function OrderManagement() {
   const supabase = createClientSupabase();
@@ -94,9 +96,31 @@ export default function OrderManagement() {
     },
   });
 
+  const {data: activeOrders, refetch: refetchActiveOrders} = useQuery({
+    queryKey: ['active-orders'],
+    queryFn: async () => {
+      const query = await supabase
+      .from('orders')
+      .select(`id, order_id, customer_name, status, payment_token, tables (name, id)`,)
+      .in('status', ['process', 'reserved'])
+      .order('created_at');
+
+
+      const result = await query;
+
+      if(result.error) 
+        toast.error('注文データの取得に失敗しました', {
+        description: result.error.message,
+      });
+
+
+      return result.data;
+    },
+  });
+
     useEffect(() => {
     const channel = supabase
-    .channel('change_order')
+    .channel('change-order')
     .on(
       'postgres_changes', {
         event: '*',
@@ -105,6 +129,7 @@ export default function OrderManagement() {
       }, () => {
         refetchOrders();
         refetchTables();
+        refetchActiveOrders();
       },
     ) .subscribe();
 
@@ -198,7 +223,7 @@ export default function OrderManagement() {
         currentLimit * (currentPage - 1) + index + 1,
         order.order_id,
         order.customer_name,
-        (order.tables as unknown as { name: string }).name,
+        (order.tables as unknown as { name: string })?.name || 'Takeaway',
         <div
           className={cn('px-2 py-1 rounded-full text-white w-fit capitalize', {
             'bg-lime-600': order.status === 'settled',
@@ -217,7 +242,7 @@ export default function OrderManagement() {
                   action: () =>
                     item.action(
                       order.id,
-                      (order.tables as unknown as { id: string }).id,
+                      (order.tables as unknown as { id: string })?.id,
                     ),
                 }))
               : [
@@ -244,11 +269,19 @@ export default function OrderManagement() {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
+      <Tabs defaultValue="list">
+        <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">      
         <h1 className="text-2xl font-bold">注文管理 | Order Management</h1>
-        <div className="flex gap-2">
+        <TabsList> 
+          <TabsTrigger value="list">注文リスト | Order List</TabsTrigger>
+          <TabsTrigger value="map">テーブルマップ | Table Map</TabsTrigger>
+        </TabsList>
+        </div>
+        <TabsContent value="list">
+          <div className="flex gap-2 justify-between mb-4">
           <Input
             placeholder="検索 | Search"
+            className="max-w-64"
             onChange={(e) => handleChangeSearch(e.target.value)}
           />
           {roleKey !== 'kitchen' && (
@@ -277,8 +310,7 @@ export default function OrderManagement() {
             </DropdownMenu>
           )}
         </div>
-      </div>
-      <DataTable
+        <DataTable
         header={HEADER_TABLE_ORDER}
         data={filteredData}
         isLoading={isLoading}
@@ -288,6 +320,11 @@ export default function OrderManagement() {
         onChangePage={handleChangePage}
         onChangeLimit={handleChangeLimit}
       />
-    </div>
+      </TabsContent>
+      <TabsContent value="map">
+        <TableMap tables={tables || []} activeOrders={activeOrders || []} handleReservation={(id: string, table_id: string, status: string,) => {handleReservation({id, table_id, status})}}/>
+      </TabsContent>
+    </Tabs>
+  </div>
   );
 }

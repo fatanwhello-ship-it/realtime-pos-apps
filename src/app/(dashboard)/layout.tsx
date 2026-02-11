@@ -12,7 +12,6 @@ import DashboardBreadcrumb from './_components/dashboard-breadcrumb';
 
 
 
-
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>

@@ -141,7 +141,7 @@ export default function DetailOrder({ id }: { id: string }) {
         </div>
       </div>,
 
-      <div>{convertJPY(item.menus.price * item.quantity)}</div>,
+      <div>{convertJPY(item.nominal)}</div>,
 
       <div
         className={cn(

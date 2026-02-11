@@ -191,7 +191,7 @@ export async function addOrderItem(
     };
   }
 
-  const payload = data.items.map(({ total, menu, ...item }) => ({
+  const payload = data.items.map(({menu, ...item }) => ({
     ...item,
     order_id: item.order_id,
   }));
