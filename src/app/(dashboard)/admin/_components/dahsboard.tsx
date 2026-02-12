@@ -83,7 +83,8 @@ export default function Dashboard() {
 
     const growthRate = (
         ((totalRevenueThisMonth - totalRevenueLastMonth) /
-          totalRevenueLastMonth) * 100
+          totalRevenueLastMonth) * 
+        100
     ).toFixed(2);
 
 

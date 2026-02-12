@@ -2,13 +2,15 @@ import { HoverCard, HoverCardContent } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { HoverCardTrigger } from '@radix-ui/react-hover-card';
 import { TableMapType } from "@/validations/table-validation";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Background, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import DialogCreateOrder from "./dialog-create-order-dine-in";
+import { useAuthStore } from "@/stores/auth-store";
+import { SidebarMenuKey } from "@/constants/sidebar-constant";
 
 
 
@@ -28,7 +30,11 @@ export function TableNode({
         handleReservation: (id: string, table_id: string, status: string) => void;
     };
 }) {
-    const [openCreateOrder, setOpenCreateOrder] = useState(false);    
+    const [openCreateOrder, setOpenCreateOrder] = useState(false);  
+    
+    const profile = useAuthStore((state) => state.profile);
+    
+    const roleKey = profile.role?.toLocaleLowerCase() as SidebarMenuKey;
     return (
         <HoverCard>
             <HoverCardTrigger asChild>
@@ -70,27 +76,39 @@ export function TableNode({
                                     <Button>Detail</Button>
                             </Link>
                             ) : (
-                                <div className="w-full flex gap-2">
-                                    <Button variant="destructive" onClick={() => data.handleReservation(`${data?.order?.id}`,data.id, 'canceled')}>
-                                        Canceled
-                                    </Button>
-                                </div> 
+                                <Fragment>
+                                    {roleKey !== 'kitchen' && (
+                                        <div className="w-full flex gap-2">
+                                            <Button variant="destructive" onClick={() => data.handleReservation(`${data?.order?.id}`,data.id, 'canceled')}>
+                                                Canceled
+                                            </Button>
+                                        
+                                            <Button onClick={() => data.handleReservation(`${data?.order?.id}`,data.id, 'process')}>
+                                                Process
+                                            </Button>
+                                        </div>
+                                    )} 
+                                </Fragment> 
                             )}
 
                         </div>
                     ) : (
-                        <Dialog open={openCreateOrder} onOpenChange={setOpenCreateOrder}>
-                            <DialogTrigger asChild>
-                                <Button>注文の作成</Button>
-                            </DialogTrigger>
-                            <DialogCreateOrder 
-                                closeDialog={() => setOpenCreateOrder(false)}
-                                selectedTable= {{                               
-                                    id: data.id,
-                                    name: data.label,
-                                }}
-                                />
-                        </Dialog>
+                        <Fragment>
+                            {roleKey !== 'kitchen' &&(
+                                <Dialog open={openCreateOrder} onOpenChange={setOpenCreateOrder}>
+                                    <DialogTrigger asChild>
+                                        <Button>注文の作成</Button>
+                                    </DialogTrigger>
+                                    <DialogCreateOrder 
+                                        closeDialog={() => setOpenCreateOrder(false)}
+                                        selectedTable= {{                               
+                                            id: data.id,
+                                            name: data.label,
+                                        }}
+                                        />
+                                </Dialog>
+                            )}
+                        </Fragment>
                     )} 
                 </div>                 
             </HoverCardContent>
@@ -107,8 +125,6 @@ export default function TableMap({ tables, activeOrders,handleReservation}: {
     }[];
     handleReservation: (id: string, table_id: string, status: string) => void;
 }) {
-
-    console.log(activeOrders);
 
     const nodeTypes = {
         tableNode: TableNode,
@@ -131,7 +147,7 @@ export default function TableMap({ tables, activeOrders,handleReservation}: {
 
             type: 'tableNode',
         }));
-    }, [tables]);
+    }, [tables, activeOrders]);
 
 
     return (

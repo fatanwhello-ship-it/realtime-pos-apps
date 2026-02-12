@@ -98,7 +98,7 @@ export default function AddOrderItem({ id }: { id: string }) {
             carts.map((item) => item.menu_id === menu.id ? {
               ...item, 
                 quantity: item.quantity + 1,
-                nominal: item.nominal - priceAfterDiscount,
+                nominal: item.nominal + priceAfterDiscount,
             }: item, 
           ),
         );

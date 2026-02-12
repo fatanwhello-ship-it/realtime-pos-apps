@@ -10,13 +10,15 @@ import useDataTable from "@/hooks/use-datatable";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Table } from "@/validations/table-validation";
-import { useQueries, useQuery } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Pencil, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import DialogCreateTable from "./dialog-create-table";
 import DialogUpdateTable from "./dialog-update-table";
 import DialogDeleteTable from "./dialog-delete-table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TableMap from "./table-map";
 
 export default function TableManagement(){
     const supabase = createClient();
@@ -80,7 +82,7 @@ export default function TableManagement(){
                 'bg-yellow-600': table.status === 'reserved',
                 })}> { table.status }</div>,
                 
-                <DropDownAction menu={[{ label: ( <span className="flex items-center gap-2"> Edit </span>), 
+                <DropDownAction menu={[{ label: ( <span className="flex items-center gap-2"><Pencil />Edit </span>), 
                     action: () => {
                         setSelectedAction({
                             data: table,
@@ -115,12 +117,53 @@ export default function TableManagement(){
         ? Math.ceil(tables.count / currentLimit ) : 0;
     }, [ tables ]);
 
+    const {data: allTables, refetch: refetchTables} = useQuery({
+        queryKey: ['all-tables'], 
+        queryFn: async () => {
+            const result = await supabase
+            .from('tables')
+            .select('*')
+
+
+            return result.data;
+        },
+    });
+
+
+    useEffect(() => {
+        const channel = supabase
+        .channel('change-table')
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'tables',
+        }, () => {
+            refetch();
+            refetchTables();
+        },
+    )
+    .subscribe();
+
+
+    return () => {
+        supabase.removeChannel(channel);
+        };
+    });
+
 
     return (
     <div className="w-full">
-      <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
-        <h1 className="text-2xl font-bold">テーブル管理 | Table Management</h1>
-        <div className="flex gap-2">
+        <Tabs defaultValue="list">
+            <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
+                <h1 className="text-2xl font-bold">テーブル管理 | Table Management</h1>
+                <TabsList>
+                    <TabsTrigger value="list">Table List | テーブルリスト</TabsTrigger>
+                    <TabsTrigger value="map">Table Map | テーブルマップ</TabsTrigger>
+                </TabsList>
+            </div>
+
+            <TabsContent value="list">
+        <div className="flex gap-2 justify-between mb-4">
           <Input
             placeholder=" 検索 | Search "
             onChange={(e) => handleChangeSearch(e.target.value)}
@@ -132,24 +175,26 @@ export default function TableManagement(){
             <DialogCreateTable refetch={refetch}/>
           </Dialog> 
         </div>
-      </div>
-      <DataTable
-        header={HEADER_TABLE_TABLE}
-        data={filteredData}
-        isLoading={isLoading}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        currentLimit={currentLimit}
-        onChangePage={handleChangePage}
-        onChangeLimit={handleChangeLimit}
-      />
+        <DataTable
+          header={HEADER_TABLE_TABLE}
+          data={filteredData}
+          isLoading={isLoading}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          currentLimit={currentLimit}
+          onChangePage={handleChangePage}
+          onChangeLimit={handleChangeLimit}
+        />
 
 
-    <DialogUpdateTable open={ selectedAction !== null && selectedAction.type === 'update'} refetch={refetch} currentData={selectedAction?.data} handleChangeAction={handleChangeAction}/>
-
-    <DialogDeleteTable open={ selectedAction !== null && selectedAction.type === 'delete'} refetch={refetch} currentData={ selectedAction?.data} handleChangeAction={handleChangeAction} />
-
-      
+        <DialogUpdateTable open={ selectedAction !== null && selectedAction.type === 'update'} refetch={refetch} currentData={selectedAction?.data} handleChangeAction={handleChangeAction}/>
+    
+        <DialogDeleteTable open={ selectedAction !== null && selectedAction.type === 'delete'} refetch={refetch} currentData={ selectedAction?.data} handleChangeAction={handleChangeAction} />
+        </TabsContent>
+        <TabsContent value="map">
+            <TableMap tables={allTables ?? []} />
+        </TabsContent>
+    </Tabs>      
     </div>
   );
 }

@@ -77,6 +77,8 @@ export async function updateTable( prevState: TableFormState, formData: FormData
       description: validatedFields.data.description,
       capacity: validatedFields.data.capacity,
       status: validatedFields.data.status,
+      position_x: 0,
+      position_y: 0,
     }) 
 
     .eq('id', formData.get( 'id' ));
